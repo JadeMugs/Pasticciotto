@@ -4,13 +4,10 @@ import {
 	FlatList,
 	ListRenderItemInfo,
 	SafeAreaView,
-	ScrollView,
 	StatusBar,
 	StyleSheet,
-	TouchableHighlight,
 	useColorScheme,
 	View,
-	VirtualizedList,
 } from "react-native";
 import {
 	Avatar,
@@ -35,7 +32,7 @@ type HomeProperties = {
 };
 
 // TODO: move data
-const data = [...recipes, ...recipes, ...recipes];
+const data = [...recipes, ...recipes, ...recipes, ...recipes, ...recipes];
 
 export const Home: React.FC<HomeProperties> = ({
 	navigation,
@@ -51,12 +48,8 @@ export const Home: React.FC<HomeProperties> = ({
 
 	// // JSX
 
-	const recipeItem = ({
-		item,
-	}: ListRenderItemInfo<Recipe>): React.ReactElement => (
-		<TouchableHighlight
-			activeOpacity={0.6}
-			underlayColor="#DDDDDD"
+	const recipeItemRender = ({ item }: ListRenderItemInfo<Recipe>) => (
+		<ListItem
 			onPress={() => navigation.navigate("RecipeDetails", { recipe: item })}
 			style={styles.itemContainer}
 			key={item.name}
@@ -71,10 +64,8 @@ export const Home: React.FC<HomeProperties> = ({
 				/>
 				<ListItem.Subtitle>{item.category}</ListItem.Subtitle>
 			</ListItem.Content>
-		</TouchableHighlight>
+		</ListItem>
 	);
-
-	const getItem = (data: Recipe[], index: number) => data[index];
 
 	const onChangeFilterText = (searchText?: string): void => {
 		if (searchText?.indexOf("\n") === -1) {
@@ -84,7 +75,7 @@ export const Home: React.FC<HomeProperties> = ({
 
 	const onSearchTextClear = (): void => {
 		setSearchText("");
-		onRecipesFilter();
+		setFilteredRecipes(data);
 	};
 
 	const onRecipesFilter = () => {
@@ -102,51 +93,51 @@ export const Home: React.FC<HomeProperties> = ({
 	};
 
 	return (
-		<SafeAreaView>
-			<FlatList<Recipe>
-				ListHeaderComponent={
-					<>
-						<Text h2 style={styles.header}>
-							Scopri le ricette
-						</Text>
+		<SafeAreaView style={{ flex: 1 }}>
+			<View>
+				<Text h2 style={styles.header}>
+					Scopri le ricette
+				</Text>
 
-						<SearchBar
-							placeholder="Cerca una ricetta..."
-							onChangeText={onChangeFilterText}
-							value={searchText}
-							platform="default"
-							loadingProps={{}}
-							showLoading={true}
-							lightTheme={!isDarkMode}
-							round={true}
-							onClear={onSearchTextClear}
-							onCancel={onSearchTextClear}
-							onFocus={() => {}}
-							onBlur={onRecipesFilter}
-							clearIcon={{
-								Component: FontAwesomeIcon,
-								name: "remove",
-								color: "black",
-								onPress: onSearchTextClear,
-							}}
-							searchIcon={{
-								Component: FontAwesomeIcon,
-								name: "search",
-								color: "black",
-								onPress: onRecipesFilter,
-							}}
-							cancelButtonTitle={"Annulla"}
-							cancelButtonProps={{}}
-							showCancel={true}
-						/>
-					</>
-				}
+				<SearchBar
+					placeholder="Cerca una ricetta..."
+					onChangeText={onChangeFilterText}
+					value={searchText}
+					platform="default"
+					loadingProps={{}}
+					showLoading={true}
+					lightTheme={!isDarkMode}
+					round={true}
+					onClear={onSearchTextClear}
+					onCancel={onSearchTextClear}
+					onFocus={() => {
+						return;
+					}}
+					onBlur={onRecipesFilter}
+					clearIcon={{
+						Component: FontAwesomeIcon,
+						name: "remove",
+						color: "black",
+						iconProps: { size: 24, name: "remove" },
+						onPress: onSearchTextClear,
+					}}
+					searchIcon={{
+						Component: FontAwesomeIcon,
+						name: "search",
+						color: "black",
+						onPress: onRecipesFilter,
+					}}
+					cancelButtonTitle={"Annulla"}
+					cancelButtonProps={{}}
+					showCancel={true}
+				/>
+			</View>
+
+			<FlatList<Recipe>
 				data={filteredRecipes}
-				initialNumToRender={4}
-				renderItem={recipeItem}
+				initialNumToRender={2}
+				renderItem={recipeItemRender}
 				keyExtractor={(item, index) => index + item?.name}
-				getItemCount={() => filteredRecipes.length}
-				getItem={getItem}
 			/>
 		</SafeAreaView>
 	);
@@ -155,10 +146,12 @@ export const Home: React.FC<HomeProperties> = ({
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		flexDirection: "row",
 		paddingTop: StatusBar.currentHeight,
 		marginHorizontal: 16,
 	},
 	itemContainer: {
+		backgroundColor: "#fff",
 		padding: 4,
 	},
 	itemTitle: { fontSize: 20 },

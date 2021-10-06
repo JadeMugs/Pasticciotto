@@ -9,14 +9,7 @@ import {
 	StyleSheet,
 	View,
 } from "react-native";
-import {
-	Icon,
-	Image,
-	ListItem,
-	Tab,
-	TabView,
-	Text,
-} from "react-native-elements";
+import { Image, ListItem, Tab, TabView, Text } from "react-native-elements";
 import RNPickerSelect from "react-native-picker-select";
 
 import { AppIcon } from "../../components/AppIcon";
@@ -114,7 +107,7 @@ export const RecipeDetails: React.FC<RecipeDetailsProperties> = ({
 				title: section.showTitle ? section.title : "",
 				data: section.ingredients,
 			})),
-		[],
+		[recipe.ingredients],
 	);
 
 	// Callbacks
