@@ -8,7 +8,7 @@ import { RecipeDetails as RecipeDetailsScene } from "./scenes/RecipeDetails";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { RootStackParameterList } from "./types/RootStackParameterList";
-import { useColorScheme, SafeAreaView, StatusBar } from "react-native";
+import { useColorScheme } from "react-native";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 
 const Stack = createStackNavigator<RootStackParameterList>();

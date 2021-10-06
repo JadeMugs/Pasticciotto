@@ -6,4 +6,3 @@ export const AppIcon = (props: IconProps): JSX.Element => {
 
 	return <Icon type="font-awesome" solid={solid ?? false} {...rest} />;
 };
-ya

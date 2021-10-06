@@ -17,15 +17,10 @@ module.exports = {
 			version: "detect",
 		},
 		polyfills: ["fetch"],
-		"import/resolver": {
-			node: {
-				extensions: [".js", ".jsx", ".ts", ".tsx"],
-			},
-		},
 	},
 
 	env: {
-		browser: true,
+		browser: false,
 	},
 
 	extends: [
@@ -40,7 +35,6 @@ module.exports = {
 		"plugin:security/recommended",
 		"plugin:styled-components-a11y/recommended",
 		"plugin:jsx-a11y/recommended",
-		"plugin:import/recommended",
 		"plugin:prettier/recommended",
 	],
 
@@ -64,9 +58,6 @@ module.exports = {
 				groups: [["^@?\\w"], ["^[^.]"], ["^\\."], ["^\\u0000"]],
 			},
 		],
-		"import/first": "error",
-		"import/newline-after-import": "error",
-		"import/no-duplicates": "error",
 		"no-restricted-imports": [
 			"error",
 			{
@@ -102,5 +93,6 @@ module.exports = {
 		],
 		"security/detect-object-injection": 0,
 		"compat/compat": 0,
+		"no-shadows": "off",
 	},
 };
