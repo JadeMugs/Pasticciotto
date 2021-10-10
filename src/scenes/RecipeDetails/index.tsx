@@ -7,15 +7,18 @@ import {
 	ScrollView,
 	SectionList,
 	StyleSheet,
+	TouchableOpacity,
 	View,
 } from "react-native";
-import { Image, ListItem, Tab, TabView, Text } from "react-native-elements";
-import RNPickerSelect from "react-native-picker-select";
+import { Divider, Image, Text } from "react-native-elements";
 
 import { AppIcon } from "../../components/AppIcon";
+import { TabWithContent } from "../../components/TabWithContent";
 import Ingredient from "../../types/Ingredient";
 import { Difficulty } from "../../types/Recipe";
 import { RootStackParameterList } from "../../types/RootStackParameterList";
+import { RecipeInfo } from "./RecipeInfo";
+import { Servings } from "./Servings";
 
 type RecipeDetailsNavigationProperties = StackNavigationProp<
 	RootStackParameterList,
@@ -42,8 +45,8 @@ export const RecipeDetails: React.FC<RecipeDetailsProperties> = ({
 
 	// Component state
 
-	const [servings, setServings] = useState<number>(recipe?.serving);
-	const [currentTab, setCurrentTab] = useState<number>(0);
+	const [isServingsModalVisible, setServingsModalVisibility] =
+		useState<boolean>(false);
 
 	useEffect(() => {
 		if (!recipe) return;
@@ -52,15 +55,6 @@ export const RecipeDetails: React.FC<RecipeDetailsProperties> = ({
 	}, [navigation, recipe]);
 
 	// Memoized data
-
-	const servingsRange = useMemo(
-		() =>
-			[...new Array(20).keys()].map((value) => ({
-				label: (value + 1).toString(),
-				value: value + 1,
-			})),
-		[],
-	);
 
 	const mainData: {
 		icon?: JSX.Element;
@@ -110,125 +104,124 @@ export const RecipeDetails: React.FC<RecipeDetailsProperties> = ({
 		[recipe.ingredients],
 	);
 
-	// Callbacks
-
-	const mainRecipeInfo = ({
-		icon,
-		iconName,
-		label,
-		content,
-	}: {
-		icon?: JSX.Element;
-		iconName?: string;
-		label: string;
-		content: string | JSX.Element;
-	}) => (
-		<ListItem>
-			{icon && icon}
-			{iconName && <AppIcon name={iconName} />}
-			<ListItem.Content>
-				<ListItem.Title>
-					{label}: {content}
-				</ListItem.Title>
-			</ListItem.Content>
-		</ListItem>
-	);
+	const tabs = [
+		{
+			title: "Info",
+			content: (
+				<FlatList
+					data={mainData}
+					renderItem={({ item }) => (
+						<RecipeInfo
+							icon={item?.icon}
+							content={item?.content}
+							iconName={item?.iconName}
+							label={item?.label}
+						/>
+					)}
+					keyExtractor={(item) => item.label}
+				/>
+			),
+		},
+		{
+			title: "Procedimento",
+			content: (
+				<ScrollView>
+					<Text style={styles.recipeMainInfo}>Procedimento: </Text>
+					{recipe.steps.map((currentStep, index) => (
+						<View key={index}>
+							<Text style={styles.step}>{currentStep.step}</Text>
+							{currentStep?.imgUri && (
+								<Image
+									source={{ uri: currentStep.imgUri }}
+									resizeMode="center"
+									style={styles.stepImage}
+								/>
+							)}
+						</View>
+					))}
+				</ScrollView>
+			),
+		},
+	];
 
 	// JSX
 
 	if (!recipe) return <></>;
 
 	return (
-		<SafeAreaView style={styles.page}>
-			{/* <ScrollView> */}
-			<View style={{ ...styles.flexRow, ...styles.titleContainer }}>
-				<Text h1 style={styles.title}>
-					{recipe.name}
-				</Text>
-				<View style={styles.imageContainer}>
-					<Image
-						source={{ uri: recipe.imgUri }}
-						resizeMode="center"
-						style={styles.image}
+		// <SafeAreaView style={styles.page}>
+		<ScrollView>
+			<Image
+				source={{ uri: recipe.imgUri }}
+				// resizeMode="center"
+				style={styles.imageContainer}
+			/>
+
+			<View>
+				<View style={[styles.flexRow, styles.servingsContainer]}>
+					<Servings
+						initialServings={recipe?.serving}
+						isVisible={isServingsModalVisible}
+						onPress={() => setServingsModalVisibility(false)}
 					/>
+					<TouchableOpacity onPress={() => setServingsModalVisibility(true)}>
+						<AppIcon name="pencil" />
+					</TouchableOpacity>
 				</View>
-			</View>
-			<View style={{ ...styles.flexRow, ...styles.servings }}>
-				<Text style={styles.recipeMainInfo}>Dosi per: </Text>
-				<RNPickerSelect
-					onValueChange={setServings}
-					value={servings}
-					items={servingsRange}
-					Icon={() => <AppIcon name="chevron-down" />}
-					useNativeAndroidPickerStyle={false}
-					style={{
-						inputIOS: styles.inputIOS,
-						inputAndroid: styles.inputAndroid,
-					}}
+
+				<FlatList
+					data={mainData}
+					renderItem={({ item }) => (
+						<RecipeInfo
+							icon={item?.icon}
+							content={item?.content}
+							iconName={item?.iconName}
+							label={item?.label}
+						/>
+					)}
+					keyExtractor={(item) => item.label}
 				/>
-				<Text style={styles.recipeMainInfo}> persone </Text>
+
+				<Divider />
+
+				<SectionList
+					sections={ingredientsData}
+					keyExtractor={(item, index) => item.name + index}
+					renderItem={({ item }) => (
+						<RecipeInfo
+							icon={<Text>{"\u2022"}</Text>}
+							content={(item?.quantity ?? "") + (item?.uom ?? "")}
+							label={item?.name}
+						/>
+					)}
+					renderSectionHeader={({ section: { title } }) => <Text>{title}</Text>}
+					ListHeaderComponent={
+						<Text style={styles.recipeMainInfo}>Ingredienti: </Text>
+					}
+				/>
 			</View>
 
-			<Tab value={currentTab} onChange={setCurrentTab}>
-				<Tab.Item title="Info" />
-				<Tab.Item title="Ingredienti" />
-				<Tab.Item title="Procedimento" />
-			</Tab>
+			<Divider />
 
-			<TabView value={currentTab} onChange={setCurrentTab}>
-				<TabView.Item style={{ backgroundColor: "red", width: "100%" }}>
-					<FlatList
-						data={mainData}
-						renderItem={({ item }) =>
-							mainRecipeInfo({
-								icon: item?.icon,
-								content: item?.content,
-								iconName: item?.iconName,
-								label: item?.label,
-							})
-						}
-						keyExtractor={(item) => item.label}
-					/>
-				</TabView.Item>
-				<TabView.Item style={{ backgroundColor: "blue", width: "100%" }}>
-					<SectionList
-						sections={ingredientsData}
-						keyExtractor={(item, index) => item.name + index}
-						renderItem={({ item }) =>
-							mainRecipeInfo({
-								icon: <Text>{"\u2022"}</Text>,
-								content: (item?.quantity ?? "") + (item?.uom ?? ""),
-								label: item?.name,
-							})
-						}
-						renderSectionHeader={({ section: { title } }) => (
-							<Text>{title}</Text>
+			<ScrollView>
+				<Text style={styles.recipeMainInfo}>Procedimento: </Text>
+				{recipe.steps.map((currentStep, index) => (
+					<View key={index}>
+						<Text style={styles.step}>{currentStep.step}</Text>
+						{currentStep?.imgUri && (
+							<Image
+								source={{ uri: currentStep.imgUri }}
+								resizeMode="center"
+								style={styles.stepImage}
+							/>
 						)}
-						ListHeaderComponent={
-							<Text style={styles.recipeMainInfo}>Ingredienti: </Text>
-						}
-					/>
-				</TabView.Item>
-				<TabView.Item style={{ backgroundColor: "green", width: "100%" }}>
-					<ScrollView>
-						<Text style={styles.recipeMainInfo}>Procedimento: </Text>
-						{recipe.steps.map((currentStep, index) => (
-							<View key={index}>
-								<Text style={styles.step}>{currentStep.step}</Text>
-								{currentStep?.imgUri && (
-									<Image
-										source={{ uri: currentStep.imgUri }}
-										resizeMode="center"
-										style={styles.stepImage}
-									/>
-								)}
-							</View>
-						))}
-					</ScrollView>
-				</TabView.Item>
-			</TabView>
-			{/* </ScrollView> */}
-		</SafeAreaView>
+					</View>
+				))}
+			</ScrollView>
+
+			{/* <TabWithContent tabs={tabs} /> */}
+		</ScrollView>
+		// </SafeAreaView>
 	);
 };
 
@@ -242,9 +235,13 @@ const styles = StyleSheet.create({
 	title: {
 		width: "50%",
 		padding: 10,
+		fontSize: 20,
 	},
 	imageContainer: {
-		width: "50%",
+		width: "100%",
+		height: undefined,
+		// figure out your image aspect ratio
+		aspectRatio: 3 / 1.8,
 	},
 	image: {
 		// TODO: use screen dimension
@@ -252,7 +249,6 @@ const styles = StyleSheet.create({
 		height: undefined,
 		aspectRatio: 1,
 	},
-	servings: { padding: 14, display: "flex" },
 	recipeMainInfo: { fontSize: 20, padding: 3 },
 	flexRow: {
 		display: "flex",
@@ -260,25 +256,9 @@ const styles = StyleSheet.create({
 		flexWrap: "wrap",
 		alignItems: "center",
 	},
-	inputIOS: {
-		fontSize: 20,
-		paddingVertical: 10,
-		paddingHorizontal: 12,
-		borderWidth: 1,
-		borderColor: "green",
-		borderRadius: 8,
-		color: "black",
-		paddingRight: 30, // to ensure the text is never behind the icon
-	},
-	inputAndroid: {
-		fontSize: 20,
-		// paddingHorizontal: 10,
-		// paddingVertical: 8,
-		borderWidth: 1,
-		borderColor: "blue",
-		borderRadius: 8,
-		color: "black",
-		paddingRight: 30, // to ensure the text is never behind the icon
+	servingsContainer: {
+		padding: 6,
+		justifyContent: "space-between",
 	},
 	step: {
 		fontSize: 18,

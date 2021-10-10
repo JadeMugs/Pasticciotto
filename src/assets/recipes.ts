@@ -7,7 +7,7 @@ const recipes: Recipe[] = [
 		difficulty: Difficulty.easy,
 		serving: 4,
 		imgUri:
-			"https://ricettedifutura.altervista.org/wp-content/uploads/2017/07/sorbettolimone-320x379.jpg",
+			"https://www.giallozafferano.it/images/ricette/182/18291/foto_hd/hd650x433_wm.jpg",
 		timing: {
 			preparation: {
 				time: 20,

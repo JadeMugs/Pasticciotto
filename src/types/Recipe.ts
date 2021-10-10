@@ -7,6 +7,13 @@ export enum Difficulty {
 	"hard" = 3,
 }
 
+export type RecipeDetails = {
+	icon?: JSX.Element;
+	iconName?: string;
+	label: string;
+	content: string | JSX.Element;
+};
+
 interface Recipe {
 	name: string;
 	category: string;
@@ -15,6 +22,7 @@ interface Recipe {
 	timing: RecipeTiming;
 	serving: number;
 	tags?: string[];
+	// recipeInfo: RecipeInfo;
 	ingredients: {
 		title: string;
 		ingredients: Ingredient[];
