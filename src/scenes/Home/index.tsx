@@ -1,24 +1,16 @@
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useState } from "react";
 import {
-	FlatList,
-	ListRenderItemInfo,
+	Dimensions,
 	SafeAreaView,
-	StatusBar,
 	StyleSheet,
 	useColorScheme,
 	View,
 } from "react-native";
-import {
-	Avatar,
-	Badge,
-	ListItem,
-	SearchBar,
-	Text,
-} from "react-native-elements";
-import FontAwesomeIcon from "react-native-vector-icons/FontAwesome";
+import { Avatar, Badge, Input, ListItem, Text } from "react-native-elements";
 
-import recipes from "../../assets/recipes";
+import { recipes as data } from "../../assets/recipes";
+import { AppIcon } from "../../components/AppIcon";
 import Recipe from "../../types/Recipe";
 import { RootStackParameterList } from "../../types/RootStackParameterList";
 
@@ -31,9 +23,6 @@ type HomeProperties = {
 	navigation: HomeNavigationProperties;
 };
 
-// TODO: move data
-const data = [...recipes, ...recipes, ...recipes, ...recipes, ...recipes];
-
 export const Home: React.FC<HomeProperties> = ({
 	navigation,
 }: HomeProperties) => {
@@ -45,32 +34,14 @@ export const Home: React.FC<HomeProperties> = ({
 
 	const [searchText, setSearchText] = useState<string>("");
 	const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>(data);
+	const [isSearchInputFocused, setIsSearchInputFocused] =
+		useState<boolean>(false);
 
-	// // JSX
+	// Functions
 
-	const recipeItemRender = ({ item }: ListRenderItemInfo<Recipe>) => (
-		<ListItem
-			onPress={() => navigation.navigate("RecipeDetails", { recipe: item })}
-			style={styles.itemContainer}
-			key={item.name}
-		>
-			<Avatar size="large" source={{ uri: item.imgUri }} />
-			<ListItem.Content>
-				<ListItem.Title style={styles.itemTitle}>{item.name}</ListItem.Title>
-				<Badge
-					status="success"
-					value={`${item.timing.total.time} ${item.timing.total.uom}`}
-					containerStyle={{ position: "absolute", top: -6, right: -4 }}
-				/>
-				<ListItem.Subtitle>{item.category}</ListItem.Subtitle>
-			</ListItem.Content>
-		</ListItem>
-	);
-
-	const onChangeFilterText = (searchText?: string): void => {
-		if (searchText?.indexOf("\n") === -1) {
-			setSearchText(searchText);
-		}
+	const onChangeFilterText = (text?: string): void => {
+		setSearchText(text ?? "");
+		onRecipesFilter(text);
 	};
 
 	const onSearchTextClear = (): void => {
@@ -78,29 +49,54 @@ export const Home: React.FC<HomeProperties> = ({
 		setFilteredRecipes(data);
 	};
 
-	const onRecipesFilter = () => {
-		if (!searchText) {
-			setFilteredRecipes(data);
-			return;
-		}
+	const onRecipesFilter = (textFilter?: string) => {
+		const newRecipes =
+			!textFilter || textFilter?.length <= 0
+				? data
+				: data.filter(
+						(recipe) =>
+							recipe.name.toLowerCase().search(textFilter.toLowerCase()) !== -1,
+				  );
 
-		setFilteredRecipes(
-			data.filter(
-				(recipe) =>
-					recipe.name.toLowerCase().search(searchText.toLowerCase()) !== -1,
-			),
-		);
+		setFilteredRecipes(newRecipes);
 	};
 
 	return (
-		<SafeAreaView style={{ flex: 1 }}>
-			<View>
+		<SafeAreaView style={styles.page}>
+			<View style={styles.titleContainer}>
 				<Text h2 style={styles.header}>
-					Scopri le ricette
+					Pasticciotto
 				</Text>
 
-				<SearchBar
-					placeholder="Cerca una ricetta..."
+				<Input
+					placeholder="Trova un piatto"
+					value={searchText}
+					onFocus={() => setIsSearchInputFocused(true)}
+					onBlur={() => setIsSearchInputFocused(false)}
+					rightIcon={
+						!isSearchInputFocused || searchText.length === 0 ? (
+							<AppIcon
+								name="search"
+								size={24}
+								color="black"
+								onPress={() => onRecipesFilter(searchText)}
+							/>
+						) : (
+							<AppIcon
+								name="remove"
+								size={24}
+								color="black"
+								onPress={onSearchTextClear}
+							/>
+						)
+					}
+					containerStyle={styles.searchbarContainer}
+					inputStyle={styles.searchbarInput}
+					onChangeText={onChangeFilterText}
+				/>
+
+				{/* <SearchBar
+					placeholder="Trova una ricetta..."
 					onChangeText={onChangeFilterText}
 					value={searchText}
 					platform="default"
@@ -130,38 +126,85 @@ export const Home: React.FC<HomeProperties> = ({
 					cancelButtonTitle={"Annulla"}
 					cancelButtonProps={{}}
 					showCancel={true}
-				/>
+					style={styles.searchbar}
+				/> */}
 			</View>
 
-			<FlatList<Recipe>
-				data={filteredRecipes}
-				initialNumToRender={2}
-				renderItem={recipeItemRender}
-				keyExtractor={(item, index) => index + item?.name}
-			/>
+			{filteredRecipes.length === 0 ? (
+				<Text>Nessuna ricetta trovata</Text>
+			) : (
+				// <FlatList<Recipe>
+				// 	data={filteredRecipes}
+				// 	initialNumToRender={2}
+				// 	renderItem={recipeItemRender}
+				// 	keyExtractor={(item, index) => index + item?.name}
+				// 	/>
+				<>
+					{filteredRecipes.map((recipe) => (
+						<ListItem
+							onPress={() => navigation.navigate("RecipeDetails", { recipe })}
+							style={styles.recipeContainer}
+							key={recipe.name}
+							bottomDivider
+						>
+							<Avatar size="large" source={{ uri: recipe.imgUri }} />
+							<ListItem.Content>
+								<ListItem.Title style={styles.recipeTitle}>
+									{recipe.name}
+								</ListItem.Title>
+								<Badge
+									status="success"
+									value={`${recipe.timing.total.time} ${recipe.timing.total.uom}`}
+									containerStyle={styles.recipeBadge}
+								/>
+								<ListItem.Subtitle>{recipe.category}</ListItem.Subtitle>
+							</ListItem.Content>
+						</ListItem>
+					))}
+				</>
+			)}
 		</SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: {
+	page: {
 		flex: 1,
-		flexDirection: "row",
-		paddingTop: StatusBar.currentHeight,
-		marginHorizontal: 16,
+		backgroundColor: "#eeeded",
 	},
-	itemContainer: {
-		backgroundColor: "#fff",
-		padding: 4,
+	titleContainer: {
+		display: "flex",
+		alignItems: "center",
+		backgroundColor: "#d89518",
+		width: "100%",
+		height: Dimensions.get("window").height * 0.2,
+		borderBottomRightRadius: 20,
+		borderBottomLeftRadius: 20,
+		marginBottom: 30,
 	},
-	itemTitle: { fontSize: 20 },
 	header: {
+		top: 30,
+		flex: 3,
 		fontSize: 32,
-		backgroundColor: "#fff",
-		padding: 8,
-		textAlign: "center",
+		margin: "auto",
 	},
-	title: {
-		fontSize: 22,
+	searchbarContainer: {
+		flex: 2,
+		borderRadius: 20,
+		backgroundColor: "#e6dac5",
+		width: Dimensions.get("window").width - 40,
+		bottom: -13,
 	},
+	searchbarInput: {
+		color: "black",
+	},
+	recipeContainer: {
+		// backgroundColor: "#fff",
+		backgroundColor: "#eeeded",
+	},
+	recipeContent: {
+		backgroundColor: "#eeeded",
+	},
+	recipeTitle: { fontSize: 20 },
+	recipeBadge: { position: "absolute", top: -6, right: -4 },
 });

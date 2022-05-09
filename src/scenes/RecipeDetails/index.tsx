@@ -2,8 +2,6 @@ import { RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-	FlatList,
-	SafeAreaView,
 	ScrollView,
 	SectionList,
 	StyleSheet,
@@ -13,12 +11,11 @@ import {
 import { Divider, Image, Text } from "react-native-elements";
 
 import { AppIcon } from "../../components/AppIcon";
-import { TabWithContent } from "../../components/TabWithContent";
 import Ingredient from "../../types/Ingredient";
-import { Difficulty } from "../../types/Recipe";
+import { Difficulty } from "../../types/RecipeDifficulty";
 import { RootStackParameterList } from "../../types/RootStackParameterList";
 import { RecipeInfo } from "./RecipeInfo";
-import { Servings } from "./Servings";
+import { ServingsModal } from "./ServingsModal";
 
 type RecipeDetailsNavigationProperties = StackNavigationProp<
 	RootStackParameterList,
@@ -48,10 +45,15 @@ export const RecipeDetails: React.FC<RecipeDetailsProperties> = ({
 	const [isServingsModalVisible, setServingsModalVisibility] =
 		useState<boolean>(false);
 
+	const [servings, setServings] = React.useState<number>(recipe?.servings ?? 1);
+
+	// Effects
+
 	useEffect(() => {
 		if (!recipe) return;
 
 		navigation.setOptions({ title: recipe.name });
+		setServings(recipe.servings);
 	}, [navigation, recipe]);
 
 	// Memoized data
@@ -104,52 +106,11 @@ export const RecipeDetails: React.FC<RecipeDetailsProperties> = ({
 		[recipe.ingredients],
 	);
 
-	const tabs = [
-		{
-			title: "Info",
-			content: (
-				<FlatList
-					data={mainData}
-					renderItem={({ item }) => (
-						<RecipeInfo
-							icon={item?.icon}
-							content={item?.content}
-							iconName={item?.iconName}
-							label={item?.label}
-						/>
-					)}
-					keyExtractor={(item) => item.label}
-				/>
-			),
-		},
-		{
-			title: "Procedimento",
-			content: (
-				<ScrollView>
-					<Text style={styles.recipeMainInfo}>Procedimento: </Text>
-					{recipe.steps.map((currentStep, index) => (
-						<View key={index}>
-							<Text style={styles.step}>{currentStep.step}</Text>
-							{currentStep?.imgUri && (
-								<Image
-									source={{ uri: currentStep.imgUri }}
-									resizeMode="center"
-									style={styles.stepImage}
-								/>
-							)}
-						</View>
-					))}
-				</ScrollView>
-			),
-		},
-	];
-
 	// JSX
 
 	if (!recipe) return <></>;
 
 	return (
-		// <SafeAreaView style={styles.page}>
 		<ScrollView>
 			<Image
 				source={{ uri: recipe.imgUri }}
@@ -159,28 +120,22 @@ export const RecipeDetails: React.FC<RecipeDetailsProperties> = ({
 
 			<View>
 				<View style={[styles.flexRow, styles.servingsContainer]}>
-					<Servings
-						initialServings={recipe?.serving}
-						isVisible={isServingsModalVisible}
-						onPress={() => setServingsModalVisibility(false)}
-					/>
+					<Text style={styles.recipeMainInfo}>Dosi per {servings} persone</Text>
+
 					<TouchableOpacity onPress={() => setServingsModalVisibility(true)}>
 						<AppIcon name="pencil" />
 					</TouchableOpacity>
 				</View>
 
-				<FlatList
-					data={mainData}
-					renderItem={({ item }) => (
-						<RecipeInfo
-							icon={item?.icon}
-							content={item?.content}
-							iconName={item?.iconName}
-							label={item?.label}
-						/>
-					)}
-					keyExtractor={(item) => item.label}
-				/>
+				{mainData.map((item) => (
+					<RecipeInfo
+						key={item.label}
+						icon={item?.icon}
+						content={item?.content}
+						iconName={item?.iconName}
+						label={item?.label}
+					/>
+				))}
 
 				<Divider />
 
@@ -203,25 +158,32 @@ export const RecipeDetails: React.FC<RecipeDetailsProperties> = ({
 
 			<Divider />
 
-			<ScrollView>
-				<Text style={styles.recipeMainInfo}>Procedimento: </Text>
-				{recipe.steps.map((currentStep, index) => (
-					<View key={index}>
-						<Text style={styles.step}>{currentStep.step}</Text>
-						{currentStep?.imgUri && (
-							<Image
-								source={{ uri: currentStep.imgUri }}
-								resizeMode="center"
-								style={styles.stepImage}
-							/>
-						)}
-					</View>
-				))}
-			</ScrollView>
+			<Text style={styles.recipeMainInfo}>Procedimento: </Text>
+			{recipe.steps.map((currentStep, index) => (
+				<View key={index}>
+					<Text style={styles.step}>{currentStep.step}</Text>
+					{currentStep?.imgUri && (
+						<Image
+							source={{ uri: currentStep.imgUri }}
+							resizeMode="center"
+							style={styles.stepImage}
+						/>
+					)}
+				</View>
+			))}
+
+			<ServingsModal
+				initialServings={recipe?.servings ?? 1}
+				currentServings={servings}
+				isVisible={isServingsModalVisible}
+				onClose={(newServings: number) => {
+					setServings(newServings);
+					setServingsModalVisibility(false);
+				}}
+			/>
 
 			{/* <TabWithContent tabs={tabs} /> */}
 		</ScrollView>
-		// </SafeAreaView>
 	);
 };
 

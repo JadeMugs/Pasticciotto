@@ -8,17 +8,17 @@ import { RecipeDetails as RecipeDetailsScene } from "./scenes/RecipeDetails";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { RootStackParameterList } from "./types/RootStackParameterList";
-import { useColorScheme } from "react-native";
-import { Colors } from "react-native/Libraries/NewAppScreen";
+// import { useColorScheme } from "react-native";
+// import { Colors } from "react-native/Libraries/NewAppScreen";
 
 const Stack = createStackNavigator<RootStackParameterList>();
 
 const App: React.FC = () => {
-	const isDarkMode = useColorScheme() === "dark";
+	// const isDarkMode = useColorScheme() === "dark";
 
-	const backgroundStyle = {
-		backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-	};
+	// const backgroundStyle = {
+	// 	backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+	// };
 
 	return (
 		// <SafeAreaView style={backgroundStyle}>
@@ -28,7 +28,7 @@ const App: React.FC = () => {
 				<Stack.Screen
 					name="Home"
 					component={HomeScene}
-					options={{ title: "Pasticciotto" }}
+					options={{ headerShown: false }}
 				/>
 				<Stack.Screen name="RecipeDetails" component={RecipeDetailsScene} />
 			</Stack.Navigator>

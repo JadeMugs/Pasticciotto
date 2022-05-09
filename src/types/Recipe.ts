@@ -1,11 +1,6 @@
 import Ingredient from "./Ingredient";
+import { Difficulty } from "./RecipeDifficulty";
 import RecipeTiming from "./RecipeTiming";
-
-export enum Difficulty {
-	"easy" = 1,
-	"medium" = 2,
-	"hard" = 3,
-}
 
 export type RecipeDetails = {
 	icon?: JSX.Element;
@@ -20,7 +15,7 @@ interface Recipe {
 	imgUri: string;
 	difficulty: Difficulty;
 	timing: RecipeTiming;
-	serving: number;
+	servings: number;
 	tags?: string[];
 	// recipeInfo: RecipeInfo;
 	ingredients: {
